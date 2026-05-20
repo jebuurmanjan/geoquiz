@@ -329,3 +329,44 @@
   font-size: 14px;
   margin-top: -4px;
 }
+
+/* ── Regio-selector ── */
+.region-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.region-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.region-pill {
+  flex-shrink: 0;
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--border);
+  background: white;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.region-pill:hover {
+  border-color: #667EEA;
+  color: #667EEA;
+}
+
+.region-pill.active {
+  background: var(--primary-gradient);
+  border-color: transparent;
+  color: white;
+  font-weight: 600;
+}

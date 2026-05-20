@@ -4,17 +4,22 @@ import { useQuiz } from '../context/QuizContext.jsx'
 import ModeCard from '../components/ModeCard.jsx'
 import { buildQuiz } from '../hooks/useQuizEngine.js'
 import { useProgress } from '../hooks/useProgress.js'
-import { getPoolSize } from '../data/countries.js'
+import { getPoolSize, regions } from '../data/countries.js'
 import '../styles/home.css'
 
 const FLAG_MODES = [
-  { id: 'flag-to-name', icon: '🏳️', title: 'Naam bij vlag', desc: 'Zie een vlag, raad het land' },
-  { id: 'name-to-flag', icon: '🗺️', title: 'Vlag bij naam', desc: 'Zie een naam, kies de vlag' },
+  { id: 'flag-to-name', icon: '🏳️', title: 'Naam bij vlag',  desc: 'Zie een vlag, raad het land' },
+  { id: 'name-to-flag', icon: '🗺️', title: 'Vlag bij naam',  desc: 'Zie een naam, kies de vlag' },
 ]
 
 const CAPITAL_MODES = [
-  { id: 'name-to-capital', icon: '🏛️', title: 'Hoofdstad bij land', desc: 'Zie een land, raad de hoofdstad' },
-  { id: 'capital-to-name', icon: '🌆', title: 'Land bij hoofdstad', desc: 'Zie een hoofdstad, raad het land' },
+  { id: 'name-to-capital', icon: '🏛️', title: 'Hoofdstad bij land',  desc: 'Zie een land, raad de hoofdstad' },
+  { id: 'capital-to-name', icon: '🌆', title: 'Land bij hoofdstad',  desc: 'Zie een hoofdstad, raad het land' },
+]
+
+const MAP_MODES = [
+  { id: 'map-click',    icon: '🖱️', title: 'Klik op de kaart', desc: 'Zie een naam, klik het land op de kaart' },
+  { id: 'map-identify', icon: '🔍', title: 'Identificeer land', desc: 'Zie een gemarkeerd land, raad de naam' },
 ]
 
 const DIFFICULTIES = [
@@ -22,10 +27,12 @@ const DIFFICULTIES = [
   { level: 2, label: 'Gemakkelijk', desc: 'Bekende landen, willekeurige afleidingen' },
   { level: 3, label: 'Gemiddeld',   desc: 'Middelgrote landen, willekeurige afleidingen' },
   { level: 4, label: 'Moeilijk',    desc: 'Alle landen, gelijkende vlagkleuren' },
-  { level: 5, label: 'Expert',      desc: 'Alle landen, maximaal gelijkende vlaggen' },
+  { level: 5, label: 'Expert',      desc: 'Alle landen, open invoer' },
 ]
 
 const QUESTION_COUNTS = [5, 10, 15, 20, 25, 30, 40, 50]
+
+const IS_MAP_MODE = id => id === 'map-click' || id === 'map-identify'
 
 export default function HomeScreen() {
   const navigate = useNavigate()
@@ -50,21 +57,30 @@ export default function HomeScreen() {
   }
 
   function handleStart() {
-    const weightedPool = quizSettings.useSpacedRepetition ? getWeightedPool : null
-    const questions = buildQuiz(quizSettings, weightedPool)
-    setQuizState({ questions, settings: quizSettings })
-    navigate('/quiz')
+    if (IS_MAP_MODE(quizSettings.mode)) {
+      setQuizState({ questions: [], settings: quizSettings })
+      navigate('/map')
+    } else {
+      const weightedPool = quizSettings.useSpacedRepetition ? getWeightedPool : null
+      const questions = buildQuiz(quizSettings, weightedPool)
+      setQuizState({ questions, settings: quizSettings })
+      navigate('/quiz')
+    }
   }
 
   const atMin = quizSettings.questionCount === QUESTION_COUNTS[0]
   const atMax = quizSettings.questionCount === QUESTION_COUNTS[QUESTION_COUNTS.length - 1]
   const currentDiff = DIFFICULTIES.find(d => d.level === quizSettings.difficulty)
-
-  // Expert open-invoer is alleen beschikbaar bij vlag-modi
+  const isMapMode = IS_MAP_MODE(quizSettings.mode)
   const isCapitalMode = quizSettings.mode === 'name-to-capital' || quizSettings.mode === 'capital-to-name'
-  const expertDesc = isCapitalMode
-    ? 'Alle landen, gelijkende tekst-opties'
-    : 'Alle landen, maximaal gelijkende vlaggen + open invoer'
+
+  // Aanpassen beschrijving voor expert niveau per modus
+  function getDiffDesc(d) {
+    if (d.level !== 5) return d.desc
+    if (isMapMode) return 'Alle landen, kaartmodus — open invoer bij identificeer'
+    if (isCapitalMode) return 'Alle landen, open invoer voor hoofdstad'
+    return 'Alle landen, open invoer (vlag-modi)'
+  }
 
   return (
     <div className="screen">
@@ -78,6 +94,22 @@ export default function HomeScreen() {
             <em className="gradient-text">GeoQuiz</em>
           </h1>
           <p>Test je kennis van vlaggen, landen en meer — stap voor stap.</p>
+        </div>
+
+        {/* Regio-selector */}
+        <div>
+          <div className="section-label">Regio</div>
+          <div className="region-pills">
+            {regions.map(r => (
+              <button
+                key={r}
+                className={`region-pill ${quizSettings.region === r ? 'active' : ''}`}
+                onClick={() => setQuizSettings(s => ({ ...s, region: r }))}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Mode selection — Vlaggen */}
@@ -114,17 +146,32 @@ export default function HomeScreen() {
           </div>
         </div>
 
+        {/* Mode selection — Kaart */}
+        <div>
+          <div className="section-label">Kaart</div>
+          <div className="mode-grid">
+            {MAP_MODES.map(m => (
+              <ModeCard
+                key={m.id}
+                icon={m.icon}
+                title={m.title}
+                desc={m.desc}
+                selected={quizSettings.mode === m.id}
+                onClick={() => handleModeSelect(m.id)}
+              />
+            ))}
+          </div>
+        </div>
+
         {/* Difficulty */}
         <div>
           <div className="section-label">Moeilijkheid</div>
           <div className="card diff-card">
             <div className="diff-header">
               <span className="diff-name">{currentDiff.label}</span>
-              <span className="diff-pool">{poolSize} landen</span>
+              {!isMapMode && <span className="diff-pool">{poolSize} landen</span>}
             </div>
-            <div className="diff-desc">
-              {currentDiff.level === 5 ? expertDesc : currentDiff.desc}
-            </div>
+            <div className="diff-desc">{getDiffDesc(currentDiff)}</div>
             <div className="diff-track">
               <span className="diff-track-label">Makkelijk</span>
               <div className="diff-dots">
@@ -148,14 +195,14 @@ export default function HomeScreen() {
           <div className="card settings-card">
             <div className="settings-label">
               Aantal vragen
-              {effectiveCount < quizSettings.questionCount && (
+              {!isMapMode && effectiveCount < quizSettings.questionCount && (
                 <span className="settings-warn">max {poolSize} bij deze moeilijkheid</span>
               )}
             </div>
             <div className="counter">
               <button className="counter-btn" onClick={() => changeCount(-1)} disabled={atMin} aria-label="Minder vragen">−</button>
               <span className="counter-value">
-                {effectiveCount < quizSettings.questionCount
+                {!isMapMode && effectiveCount < quizSettings.questionCount
                   ? <><s style={{ opacity: 0.4, fontSize: '0.8em' }}>{quizSettings.questionCount}</s> {effectiveCount}</>
                   : quizSettings.questionCount}
               </span>
@@ -163,23 +210,25 @@ export default function HomeScreen() {
             </div>
           </div>
 
-          {/* Slim herhalen toggle */}
-          <div className="card settings-card" style={{ marginTop: 10 }}>
-            <div className="settings-label">
-              Slim herhalen
-              <span>Landen die je minder goed kent komen vaker terug</span>
+          {/* Slim herhalen toggle (niet bij kaart-modi) */}
+          {!isMapMode && (
+            <div className="card settings-card" style={{ marginTop: 10 }}>
+              <div className="settings-label">
+                Slim herhalen
+                <span>Landen die je minder goed kent komen vaker terug</span>
+              </div>
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={quizSettings.useSpacedRepetition}
+                  onChange={e => setQuizSettings(s => ({ ...s, useSpacedRepetition: e.target.checked }))}
+                />
+                <span className="toggle-track">
+                  <span className="toggle-thumb" />
+                </span>
+              </label>
             </div>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={quizSettings.useSpacedRepetition}
-                onChange={e => setQuizSettings(s => ({ ...s, useSpacedRepetition: e.target.checked }))}
-              />
-              <span className="toggle-track">
-                <span className="toggle-thumb" />
-              </span>
-            </label>
-          </div>
+          )}
         </div>
 
         {/* Start button */}
