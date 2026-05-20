@@ -1,0 +1,311 @@
+/* ── QuizScreen ── */
+
+.quiz-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  background-color: var(--bg);
+}
+
+.quiz-inner {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+/* ── Header ── */
+.quiz-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quiz-header .back-btn {
+  flex-shrink: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.quiz-header .back-btn:hover {
+  background: var(--text);
+  color: white;
+  border-color: var(--text);
+}
+
+.quiz-progress {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.progress-bar-track {
+  height: 8px;
+  background: var(--border);
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--primary-gradient);
+  border-radius: 100px;
+  transition: width 0.4s ease;
+}
+
+.progress-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.score-badge {
+  flex-shrink: 0;
+  background: rgba(45, 206, 137, 0.12);
+  color: var(--correct);
+  border-radius: var(--radius-pill);
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── Question card ── */
+.question-card {
+  text-align: center;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.question-prompt {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.question-flag {
+  font-size: 80px;
+  line-height: 1;
+  animation: slideUp 0.35s ease both;
+}
+
+.question-country-name {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text);
+  animation: slideUp 0.35s ease both;
+  line-height: 1.2;
+}
+
+/* ── Options grid ── */
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.option-btn {
+  background: white;
+  border: 2px solid transparent;
+  border-radius: var(--radius-btn);
+  padding: 14px 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 100px;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.option-btn .option-flag {
+  font-size: 52px;
+  line-height: 1;
+}
+
+.option-btn .option-name {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.option-btn:hover:not(:disabled) {
+  border-color: #667EEA;
+  background: rgba(102, 126, 234, 0.05);
+  transform: translateY(-1px);
+}
+
+.option-btn.correct {
+  border-color: var(--correct);
+  background: rgba(45, 206, 137, 0.08);
+  color: #1a7a50;
+  animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.option-btn.wrong {
+  border-color: var(--wrong);
+  background: rgba(245, 54, 92, 0.08);
+  color: #a01535;
+}
+
+.option-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.option-btn.correct:disabled,
+.option-btn.wrong:disabled {
+  opacity: 1;
+}
+
+/* ── Open invoer (expert modus) ── */
+.open-answer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.open-answer-wrapper {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-btn);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.open-answer-wrapper:focus-within {
+  border-color: #667EEA;
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+}
+
+.open-answer-wrapper.correct {
+  border-color: var(--correct);
+  box-shadow: 0 0 0 3px rgba(45,206,137,0.15);
+}
+
+.open-answer-wrapper.wrong {
+  border-color: var(--wrong);
+  box-shadow: 0 0 0 3px rgba(245,54,92,0.15);
+}
+
+.open-answer-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 16px 18px;
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text);
+  background: transparent;
+}
+
+.open-answer-input::placeholder {
+  color: var(--text-light);
+  font-weight: 400;
+}
+
+.open-answer-input:disabled {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.open-answer-submit {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s;
+}
+
+.open-answer-submit:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.open-answer-skip {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-btn);
+  padding: 11px 16px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  text-align: center;
+}
+
+.open-answer-skip:hover {
+  background: rgba(0,0,0,0.04);
+  color: var(--text);
+  border-color: #bbb;
+}
+
+.open-answer-feedback {
+  padding: 12px 16px;
+  border-radius: var(--radius-btn);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.open-answer-feedback.correct {
+  background: rgba(45,206,137,0.1);
+  color: #1a7a50;
+  border: 1px solid rgba(45,206,137,0.25);
+}
+
+.open-answer-feedback.wrong {
+  background: rgba(245,54,92,0.08);
+  color: #a01535;
+  border: 1px solid rgba(245,54,92,0.2);
+}
+
+/* ── Next button ── */
+.next-btn-wrapper {
+  animation: slideUp 0.3s ease both;
+}
+
+.next-btn-wrapper .btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
