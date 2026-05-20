@@ -2,11 +2,12 @@ import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuiz } from '../context/QuizContext.jsx'
 import { useQuizEngine } from '../hooks/useQuizEngine.js'
+import { useProgress } from '../hooks/useProgress.js'
 import ProgressBar from '../components/ProgressBar.jsx'
 import OptionButton from '../components/OptionButton.jsx'
 import '../styles/quiz.css'
 
-function OpenAnswerInput({ onSubmit, isAnswered, answerCorrect, correctName }) {
+function OpenAnswerInput({ onSubmit, isAnswered, answerCorrect, correctAnswer, placeholder }) {
   const [value, setValue] = useState('')
   const inputRef = useRef(null)
 
@@ -30,7 +31,7 @@ function OpenAnswerInput({ onSubmit, isAnswered, answerCorrect, correctName }) {
           ref={inputRef}
           className="open-answer-input"
           type="text"
-          placeholder="Typ de landnaam…"
+          placeholder={placeholder}
           value={value}
           onChange={e => setValue(e.target.value)}
           disabled={isAnswered}
@@ -59,7 +60,7 @@ function OpenAnswerInput({ onSubmit, isAnswered, answerCorrect, correctName }) {
         <div className={`open-answer-feedback anim-slide-up ${answerCorrect ? 'correct' : 'wrong'}`}>
           {answerCorrect
             ? `✓ Correct!`
-            : `✗ Het was: ${correctName}`}
+            : `✗ Het was: ${correctAnswer}`}
         </div>
       )}
     </form>
@@ -69,6 +70,7 @@ function OpenAnswerInput({ onSubmit, isAnswered, answerCorrect, correctName }) {
 export default function QuizScreen() {
   const navigate = useNavigate()
   const { quizState, setQuizState } = useQuiz()
+  const { updateStats } = useProgress()
 
   useEffect(() => {
     if (!quizState) navigate('/', { replace: true })
@@ -99,6 +101,29 @@ export default function QuizScreen() {
     return null
   }
 
+  function handleAnswer(option) {
+    answer(option)
+    updateStats(current.correct.name, option.name === current.correct.name)
+  }
+
+  function handleAnswerOpen(text) {
+    const isCorrect = answerOpen(text)
+    updateStats(current.correct.name, isCorrect)
+  }
+
+  // Vraagprompt per modus
+  function getPrompt() {
+    if (mode === 'flag-to-name') return isOpen ? 'Typ de naam van dit land' : 'Van welk land is deze vlag?'
+    if (mode === 'name-to-flag') return 'Welke vlag hoort bij dit land?'
+    if (mode === 'name-to-capital') return isOpen ? 'Typ de naam van de hoofdstad' : 'Wat is de hoofdstad van dit land?'
+    if (mode === 'capital-to-name') return isOpen ? 'Typ de naam van het land' : 'Bij welk land hoort deze hoofdstad?'
+    return ''
+  }
+
+  // Open invoer instellingen per modus
+  const openPlaceholder = mode === 'name-to-capital' ? 'Typ de naam van de hoofdstad…' : 'Typ de naam van het land…'
+  const openCorrectAnswer = mode === 'name-to-capital' ? current.correct.capital : current.correct.name
+
   return (
     <div className="quiz-screen">
       <div className="quiz-inner">
@@ -111,28 +136,27 @@ export default function QuizScreen() {
 
         {/* Question card */}
         <div className="card question-card" key={currentIndex}>
-          <div className="question-prompt">
-            {mode === 'flag-to-name'
-              ? isOpen
-                ? 'Typ de naam van dit land'
-                : 'Van welk land is deze vlag?'
-              : 'Welke vlag hoort bij dit land?'}
-          </div>
+          <div className="question-prompt">{getPrompt()}</div>
 
-          {mode === 'flag-to-name' ? (
+          {mode === 'flag-to-name' && (
             <div className="question-flag">{current.correct.flag}</div>
-          ) : (
+          )}
+          {(mode === 'name-to-flag' || mode === 'name-to-capital') && (
             <div className="question-country-name">{current.correct.name}</div>
+          )}
+          {mode === 'capital-to-name' && (
+            <div className="question-capital-name">{current.correct.capital}</div>
           )}
         </div>
 
-        {/* Open invoer (expert flag-to-name) of multiple choice */}
+        {/* Open invoer of multiple choice */}
         {isOpen ? (
           <OpenAnswerInput
-            onSubmit={answerOpen}
+            onSubmit={handleAnswerOpen}
             isAnswered={isAnswered}
             answerCorrect={answerCorrect}
-            correctName={current.correct.name}
+            correctAnswer={openCorrectAnswer}
+            placeholder={openPlaceholder}
           />
         ) : (
           <div className="options-grid">
@@ -141,7 +165,7 @@ export default function QuizScreen() {
                 key={option.name}
                 option={option}
                 mode={mode}
-                onClick={() => answer(option)}
+                onClick={() => handleAnswer(option)}
                 state={getOptionState(option)}
                 disabled={isAnswered}
               />

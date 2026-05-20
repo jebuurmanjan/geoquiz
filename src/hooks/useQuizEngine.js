@@ -41,22 +41,25 @@ function levenshtein(a, b) {
   return dp[m][n]
 }
 
-// Controleer of getypt antwoord overeenkomt met het juiste land
-// Strategie:
-//   1. Exacte match (genormaliseerd) op naam of alias
-//   2. Typo-tolerantie: 1 fout bij ≥5 tekens, 2 fouten bij ≥10 tekens
+function fuzzyMatch(norm, target) {
+  if (norm === target) return true
+  const maxDist = target.length >= 10 ? 2 : target.length >= 5 ? 1 : 0
+  return maxDist > 0 && levenshtein(norm, target) <= maxDist
+}
+
+// Controleer of getypt antwoord overeenkomt met het juiste land (naam / aliassen)
 export function checkOpenAnswer(input, country) {
   const norm = normalize(input)
   if (norm.length < 2) return false
-
   const targets = [country.name, ...(country.aliases || [])].map(normalize)
+  return targets.some(t => fuzzyMatch(norm, t))
+}
 
-  for (const target of targets) {
-    if (norm === target) return true
-    const maxDist = target.length >= 10 ? 2 : target.length >= 5 ? 1 : 0
-    if (maxDist > 0 && levenshtein(norm, target) <= maxDist) return true
-  }
-  return false
+// Controleer of getypt antwoord overeenkomt met de hoofdstad van een land
+export function checkOpenCapital(input, country) {
+  const norm = normalize(input)
+  if (norm.length < 2) return false
+  return fuzzyMatch(norm, normalize(country.capital))
 }
 
 // ── Kleur-similariteit voor moeilijke afleidingen ────────────────────────────
@@ -69,11 +72,19 @@ function colorSimilarity(c1, c2) {
   return intersection / union
 }
 
+// Maakt een nep-distractor object voor een stad (niet-hoofdstad) van een land
+function makeAltCityDistractor(cityName) {
+  return { name: `__altcity__${cityName}`, capital: cityName, flag: '', region: '', pop: 0, colors: [] }
+}
+
 function generateQuestion(correct, allCountries, mode, difficulty) {
   const others = allCountries.filter(c => c.name !== correct.name)
 
+  // Hoofdsteden-modi gebruiken altijd willekeurige afleidingen (kleur niet relevant)
+  const isCapitalMode = mode === 'name-to-capital' || mode === 'capital-to-name'
+
   let distractors
-  if (difficulty >= 4) {
+  if (difficulty >= 4 && !isCapitalMode) {
     const sorted = [...others].sort((a, b) =>
       colorSimilarity(b.colors, correct.colors) - colorSimilarity(a.colors, correct.colors)
     )
@@ -86,12 +97,25 @@ function generateQuestion(correct, allCountries, mode, difficulty) {
     distractors = shuffle(others).slice(0, 3)
   }
 
-  // Bij expert + naam-bij-vlag: open invoer, geen multiple choice
-  const isOpen = difficulty === 5 && mode === 'flag-to-name'
+  // Voor name-to-capital: vervang één willekeurige distractor door een altCity
+  // van het correcte land (mits beschikbaar) om de vraag moeilijker te maken
+  if (mode === 'name-to-capital' && correct.altCities && correct.altCities.length > 0) {
+    const altCity = shuffle(correct.altCities)[0]
+    const altDistractor = makeAltCityDistractor(altCity)
+    // Vervang de laatste distractor
+    distractors = [...distractors.slice(0, 2), altDistractor]
+    distractors = shuffle(distractors)
+  }
+
+  // Expert open-invoer: flag-to-name én beide hoofdsteden-modi
+  const isOpen = difficulty === 5 && (
+    mode === 'flag-to-name' || mode === 'name-to-capital' || mode === 'capital-to-name'
+  )
+
   return { correct, options: shuffle([correct, ...distractors]), mode, isOpen }
 }
 
-export function buildQuiz(settings) {
+export function buildQuiz(settings, getWeightedPool = null) {
   const { difficulty = 3, questionCount, mode, region } = settings
   const allInRegion = getCountriesByRegion(region)
   const minPop = Math.max(1, 6 - difficulty)
@@ -100,7 +124,10 @@ export function buildQuiz(settings) {
   // Zorg voor echte willekeur: shuffle meerdere keren voor betere verdeling
   const s1 = shuffle(pool)
   const s2 = shuffle(s1)
-  const selected = s2.slice(0, Math.min(questionCount, pool.length))
+
+  // Bij spaced repetition: due-landen vooraan sorteren
+  const ordered = getWeightedPool ? getWeightedPool(s2) : s2
+  const selected = ordered.slice(0, Math.min(questionCount, pool.length))
 
   return selected.map(c => generateQuestion(c, allInRegion, mode, difficulty))
 }
@@ -129,17 +156,20 @@ export function useQuizEngine(questions) {
     }
   }, [isAnswered, current])
 
-  // Open-invoer antwoord
+  // Open-invoer antwoord — retourneert boolean voor updateStats
   const answerOpen = useCallback((text) => {
-    if (isAnswered) return
+    if (isAnswered) return false
     setSelected(text)
-    const correct = checkOpenAnswer(text, current.correct)
-    setAnswerCorrect(correct)
-    if (correct) {
+    const isCorrect = current.mode === 'name-to-capital'
+      ? checkOpenCapital(text, current.correct)
+      : checkOpenAnswer(text, current.correct)
+    setAnswerCorrect(isCorrect)
+    if (isCorrect) {
       setScore(s => s + 1)
     } else {
       setWrongAnswers(w => [...w, current.correct])
     }
+    return isCorrect
   }, [isAnswered, current])
 
   const next = useCallback(() => {

@@ -1,0 +1,232 @@
+/* ── ProgressScreen ── */
+
+.progress-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  background-color: var(--bg);
+}
+
+.progress-inner {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  padding-bottom: 32px;
+}
+
+/* ── Header ── */
+.progress-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.progress-header .back-btn {
+  flex-shrink: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.progress-header .back-btn:hover {
+  background: var(--text);
+  color: white;
+  border-color: var(--text);
+}
+
+/* ── Hero ── */
+.progress-hero {
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+.progress-hero h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.progress-hero p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* ── Sectie-kaart ── */
+.progress-section-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.progress-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: -6px;
+}
+
+/* ── Progress bar ── */
+.prog-bar-track {
+  height: 10px;
+  background: var(--border);
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.prog-bar-fill {
+  height: 100%;
+  background: var(--primary-gradient);
+  border-radius: 100px;
+  transition: width 0.6s ease;
+  min-width: 4px;
+}
+
+.prog-bar-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* ── Stat pills ── */
+.stat-pills {
+  display: flex;
+  gap: 8px;
+}
+
+.stat-pill {
+  flex: 1;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stat-pill-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  font-family: var(--font-display);
+}
+
+.stat-pill-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── Weakest list ── */
+.weakest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.weakest-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.weakest-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.weakest-item-name {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.weakest-item-stats {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── Reset knop ── */
+.reset-section {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-danger {
+  background: none;
+  border: 1.5px solid #F5576C;
+  border-radius: var(--radius-pill);
+  padding: 12px 24px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  color: #F5576C;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  width: 100%;
+  max-width: 340px;
+}
+
+.btn-danger:hover {
+  background: rgba(245,87,108,0.08);
+}
+
+.btn-danger-confirm {
+  background: #F5576C;
+  color: white;
+  border-color: #F5576C;
+}
+
+.btn-danger-confirm:hover {
+  background: #d63f57;
+}
+
+.reset-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── Empty state ── */
+.progress-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.progress-empty span {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 12px;
+}

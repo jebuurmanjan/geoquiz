@@ -15,6 +15,12 @@ export default function OptionButton({ option, mode, onClick, state, disabled })
       {mode === 'flag-to-name' && (
         <span>{option.name}</span>
       )}
+      {mode === 'name-to-capital' && (
+        <span>{option.capital}</span>
+      )}
+      {mode === 'capital-to-name' && (
+        <span>{option.name}</span>
+      )}
     </button>
   )
 }

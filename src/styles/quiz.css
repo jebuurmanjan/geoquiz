@@ -116,6 +116,15 @@
   line-height: 1.2;
 }
 
+.question-capital-name {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  animation: slideUp 0.35s ease both;
+  line-height: 1.2;
+}
+
 /* ── Options grid ── */
 .options-grid {
   display: grid;

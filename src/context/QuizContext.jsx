@@ -8,6 +8,7 @@ export function QuizProvider({ children }) {
     questionCount: 10,
     region: 'Heel de wereld',
     difficulty: 3,
+    useSpacedRepetition: false,
   })
 
   const [quizState, setQuizState] = useState(null)
