@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
-import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
+import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps'
 import { useNavigate } from 'react-router-dom'
 import { useQuiz } from '../context/QuizContext.jsx'
 import { useProgress } from '../hooks/useProgress.js'
@@ -99,6 +99,8 @@ export default function MapScreen() {
   const [questions] = useState(() => buildMapQuestions(settings))
   const [currentIndex, setCurrentIndex] = useState(0)
   const [phase, setPhase] = useState('question')
+  const [mapZoom, setMapZoom] = useState(1)
+  const [mapCenter, setMapCenter] = useState([0, 20])
   const [clickedGeoId, setClickedGeoId] = useState(null)   // geo.id of clicked country
   const [clickedName, setClickedName] = useState(null)     // Dutch name of clicked country
   const [selectedOption, setSelectedOption] = useState(null)
@@ -228,34 +230,62 @@ export default function MapScreen() {
             projection="geoNaturalEarth1"
             projectionConfig={{ scale: 147 }}
           >
-            <Geographies geography={GEO_URL}>
-              {({ geographies }) =>
-                geographies.map(geo => {
-                  const fill = getGeoFill(geo)
-                  const isClickable = mode === 'map-click' && phase === 'question'
-                  return (
-                    <Geography
-                      key={geo.rsmKey}
-                      geography={geo}
-                      fill={fill}
-                      stroke="#fff"
-                      strokeWidth={0.5}
-                      onClick={() => handleGeoClick(geo)}
-                      style={{
-                        default: { outline: 'none' },
-                        hover: {
-                          fill: isClickable ? '#8fa8f0' : fill,
-                          outline: 'none',
-                          cursor: isClickable ? 'pointer' : 'default',
-                        },
-                        pressed: { outline: 'none' },
-                      }}
-                    />
-                  )
-                })
-              }
-            </Geographies>
+            <ZoomableGroup
+              zoom={mapZoom}
+              center={mapCenter}
+              onMoveEnd={({ coordinates, zoom }) => {
+                setMapCenter(coordinates)
+                setMapZoom(zoom)
+              }}
+              minZoom={1}
+              maxZoom={8}
+            >
+              <Geographies geography={GEO_URL}>
+                {({ geographies }) =>
+                  geographies.map(geo => {
+                    const fill = getGeoFill(geo)
+                    const isClickable = mode === 'map-click' && phase === 'question'
+                    return (
+                      <Geography
+                        key={geo.rsmKey}
+                        geography={geo}
+                        fill={fill}
+                        stroke="#fff"
+                        strokeWidth={0.5}
+                        onClick={() => handleGeoClick(geo)}
+                        style={{
+                          default: { outline: 'none' },
+                          hover: {
+                            fill: isClickable ? '#8fa8f0' : fill,
+                            outline: 'none',
+                            cursor: isClickable ? 'pointer' : 'default',
+                          },
+                          pressed: { outline: 'none' },
+                        }}
+                      />
+                    )
+                  })
+                }
+              </Geographies>
+            </ZoomableGroup>
           </ComposableMap>
+          <div className="map-zoom-controls">
+            <button
+              className="map-zoom-btn"
+              onClick={() => setMapZoom(z => Math.min(8, +(z * 1.5).toFixed(2)))}
+              aria-label="Inzoomen"
+            >+</button>
+            <button
+              className="map-zoom-btn"
+              onClick={() => setMapZoom(z => Math.max(1, +(z / 1.5).toFixed(2)))}
+              aria-label="Uitzoomen"
+            >−</button>
+            <button
+              className="map-zoom-btn map-zoom-reset"
+              onClick={() => { setMapZoom(1); setMapCenter([0, 20]) }}
+              aria-label="Reset kaart"
+            >⌂</button>
+          </div>
         </div>
 
         {/* Feedback voor map-click */}

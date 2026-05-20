@@ -82,12 +82,52 @@
   overflow: hidden;
   box-shadow: var(--card-shadow);
   flex-shrink: 0;
+  position: relative;
 }
 
 .map-container svg {
   display: block;
   width: 100%;
   height: auto;
+}
+
+/* ── Zoom controls ── */
+.map-zoom-controls {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.map-zoom-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  transition: background 0.15s, transform 0.1s;
+  line-height: 1;
+  padding: 0;
+}
+
+.map-zoom-btn:hover {
+  background: white;
+  transform: scale(1.1);
+}
+
+.map-zoom-reset {
+  font-size: 14px;
+  margin-top: 2px;
 }
 
 /* Country hover effect via CSS (react-simple-maps uses inline styles for hover state) */
